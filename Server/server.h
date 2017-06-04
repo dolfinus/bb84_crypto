@@ -15,6 +15,7 @@
 #include <QTest>
 #include <QGraphicsTextItem>
 #include <QGraphicsLineItem>
+#include <QGraphicsPixmapItem>
 
 namespace Ui {
 class Server;
@@ -29,12 +30,12 @@ class Tcp : public QTcpServer
 
 public:
     explicit     Tcp(Ui::Server *parent = 0, qint32 port=0);
-    QString      id;
     qint32       transaction_no;
     quint64      m_nNextBlockSize;
     qint32       port;
     QLabel      *label;
     QTcpSocket  *socket;
+    bool         state;
 
     void sendToClient(Packet& packet);
     void stopServer();
@@ -59,7 +60,12 @@ public:
     ~Server();
 
 private slots:
-    void drawing();
+
+    void init_draw_surface();
+    void draw_items();
+
+
+
     void on_exit_triggered();
     void on_loadFromFIle_triggered();
     void on_saveToFile_triggered();

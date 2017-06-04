@@ -10,20 +10,43 @@ qint32  bob_port;
 qint32  eve_port;
 
 QTimer *timer;
-QPoint  text_pos;
 qint32  margin;
 qint32  tick;
-QString text;
-QGraphicsTextItem *text_item;
-QGraphicsLineItem *first_line;
-QGraphicsLineItem *second_line;
-QGraphicsLineItem *third_line;
-QGraphicsLineItem *forth_line;
+
+bool    anim;
+bool    no_alice;
+bool    no_bob;
+
+QPoint  photon_pos;
+
+QGraphicsPixmapItem *alice_pc;
+QGraphicsPixmapItem *bob_pc;
+QGraphicsPixmapItem *eve_pc;
+
+QString alice_photon;
+QString bob_photon;
+QString eve_photon;
+
+QString ideal_photon;
+QString real_photon;
+
+QGraphicsTextItem *alice_photon_item;
+QGraphicsTextItem *bob_photon_item;
+QGraphicsTextItem *eve_photon_item;
+QGraphicsTextItem *real_photon_item;
+
+QGraphicsLineItem *open_channel_top_line;
+QGraphicsLineItem *open_channel_bottom_line;
+QGraphicsLineItem *alice_bob_direct_line;
+QGraphicsLineItem *alice_to_center_line;
+QGraphicsLineItem *center_to_eve_line;
+QGraphicsLineItem *eve_to_center_line;
+QGraphicsLineItem *center_to_bob_line;
 
 int     sleep;
 bool    spy;
-QString source;
-QString destination;
+qint32  source;
+qint32  destination;
 
 bool    noise;
 bool    multi;
@@ -39,7 +62,6 @@ int     channel_length;
 Tcp::Tcp(Ui::Server *parent, qint32 _port) :
     QTcpServer()
 {
-    id="server";
     transaction_no=0;
     m_nNextBlockSize=0;
     port=_port;
@@ -72,6 +94,8 @@ Server::Server(QWidget *parent) :
     ui->setupUi(main_server);
 
     margin=20;
+    tick=10;
+
 
     QGraphicsScene *scene = new QGraphicsScene(0,0,ui->graphicsView->width()-5,ui->graphicsView->height()-5,ui->graphicsView);
     ui->graphicsView->setScene(scene);
@@ -83,63 +107,12 @@ Server::Server(QWidget *parent) :
     bob   = new Tcp(ui, bob_port  );
     eve   = new Tcp(ui, eve_port  );
 
+
     timer = new QTimer(this);
-    connect(timer,SIGNAL(timeout()), this, SLOT(drawing()));
+    timer->setSingleShot(false);
 
-    tick=10;
+    connect(timer,SIGNAL(timeout()), this, SLOT(draw_items()));
 
-}
-
-void Server::drawing(){
-    qint32 width  = ui->graphicsView->scene()->width( );
-    qint32 height = ui->graphicsView->scene()->height();
-
-    qint32 vmiddle = height/2;
-    qint32 hmiddle = width/2;
-
-    if (text_item){
-
-        if (text_pos.x() < 0 || text_pos.x() > width || text_pos.y() > height) timer->stop();
-
-        if (text_pos == QPoint(0,0)){
-            if(source == "alice") text_pos = QPoint(1,      vmiddle+1);
-            if(source == "bob"  ) text_pos = QPoint(width-1,vmiddle+1);
-
-            if(source == "eve"  ) {
-                if (destination == "alice"){
-                    text_pos = QPoint(hmiddle-margin, height);
-                } else {
-                    text_pos = QPoint(hmiddle+margin, height);
-                }
-            }
-        }
-
-        if(source == "alice") {
-            if (destination == "bob" || ( destination == "eve" && text_pos.x() < hmiddle-margin)){
-                text_pos.setX(text_pos.x()+tick);
-            } else {
-                text_pos.setY(text_pos.y()+tick);
-            }
-        } else if(source == "bob") {
-            if (destination == "alice" || ( destination == "eve" && text_pos.x() > hmiddle+margin)){
-                text_pos.setX(text_pos.x()-tick);
-            } else {
-                text_pos.setY(text_pos.y()+tick);
-            }
-        } else if(source == "eve"){
-            if (text_pos.y() > vmiddle){
-                text_pos.setY(text_pos.y()-tick);
-            } else if (destination == "alice") {
-                text_pos.setX(text_pos.x()-tick);
-            } else if (destination == "bob") {
-                text_pos.setX(text_pos.x()+tick);
-            }
-        }
-
-        text_item->setPlainText(text);
-        text_item->setPos(text_pos);
-
-    }
 }
 
 void Server::loadSettings()
@@ -202,7 +175,7 @@ void Server::loadSettings()
 
             spy = settings.value("spy", true).toBool();
             ui->eveSpy->setChecked(spy);
-            this->on_eveSpy_toggled(spy);
+            init_draw_surface();
 
         settings.endGroup();
 
@@ -234,6 +207,7 @@ void Server::saveSettings()
 }
 
 void Tcp::stopServer() {
+    slotDelete();
     disconnect(this, SIGNAL(  newConnection()),
                this, SLOT(slotNewConnection())
     );
@@ -245,22 +219,9 @@ void Tcp::stopServer() {
 
 void Tcp::slotNewConnection()
 {
-    if (this->label) this->label->setStyleSheet("color: rgb(0, 255, 0)");
     socket = this->nextPendingConnection();
     if (socket->state() == QTcpSocket::ConnectedState) {
-        QString name;
-        if (this->port == alice_port) name = "alice";
-        if (this->port == bob_port  ) name = "bob";
-        if (this->port == eve_port  ) name = "eve";
-        //Подключен пользователь
-
-        if (this->port == eve_port) {
-            if (spy) {
-                //Eve прослушивает канал
-            } else {
-                //Eve НЕ прослушивает канал
-            }
-        }
+        this->state = true;
     }
 
     connect(socket, SIGNAL(disconnected()),
@@ -273,7 +234,8 @@ void Tcp::slotNewConnection()
 
 void Tcp::slotDelete()
 {
-    if (this->label) this->label->setStyleSheet("color: rgb(255, 0, 0)");
+    this->state = false;
+
     disconnect(socket, SIGNAL(disconnected()),
                this,   SLOT(  slotDelete())
     );
@@ -307,6 +269,7 @@ void Tcp::slotReadClient()
     QDataStream in(socket);
     in.setVersion(QDataStream::Qt_5_5);
     for (;;) {
+
         if (!m_nNextBlockSize) {
             if (socket->bytesAvailable() < sizeof(quint64)) {
                 break;
@@ -320,29 +283,36 @@ void Tcp::slotReadClient()
         Packet packet;
         in >> packet;
 
+        while( ((this->port == alice_port && no_alice) ||\
+               (this->port == bob_port   && no_bob  )) &&\
+               (packet.type & ANSWER) != ANSWER
+             ){
+            QTest::qWait(sleep*2);
+        }
+
         if (this->port == alice_port) {
-            source = "alice";
-            destination = spy ? "eve" : "bob";
+            source = ALICE;
+            destination = spy ? EVE : BOB;
         }
         if (this->port == bob_port  ) {
-            source = "bob";
-            destination = spy ? "eve" : "alice";
+            source = BOB;
+            destination = spy ? EVE : ALICE;
         }
         if (this->port == eve_port  ) {
-            source = "eve";
-            destination = (packet.from == "alice") ? "bob" : "alice";
+            source = EVE;
+            destination = (packet.from == ALICE) ? BOB : ALICE;
         }
 
-        QString new_photon="";
+        QString raw_photon = packet.photon;
+        real_photon="";
 
-
-        if (((source == "alice") || (source == "bob")) && !packet.photon.contains('X') && !packet.photon.contains('+') && (packet.type & END) != END){
+        if (((source == ALICE) || (source == BOB)) && !raw_photon.contains('X') && !raw_photon.contains('+') && (packet.type & END) != END){
 
             if (multi) {
                 int count = rnd_poisson(photon_count);
 
                 for(int i=0; i<count; ++i){
-                    new_photon += packet.photon;
+                    real_photon += raw_photon;
                 }
             }
 
@@ -356,36 +326,58 @@ void Tcp::slotReadClient()
                     probability = round(channel_length*5/300);
                 }
 
-                for(int i=0; i<new_photon.length(); ++i){
+                for(int i=0; i<real_photon.length(); ++i){
                     if (rnd() < probability) {
-                        new_photon[i] = ' ';
+                        real_photon[i] = ' ';
                     }
                 }
             }
 
-            if (noise) new_photon=noisy(new_photon,noise_level);
+            if (noise) real_photon=noisy(real_photon,noise_level);
         }
 
-        if(new_photon.length() < 1) new_photon = packet.photon;
+        if(real_photon.length() < 1) real_photon = raw_photon;
 
-        packet.photon = new_photon;
 
-        if (sleep >= 50  && !packet.photon.contains("+") && !packet.photon.contains("X") && (packet.type & END) != END) {
-            text = packet.photon;
-            text_pos  = QPoint(0,0);
 
-            timer->setSingleShot(false);
+        if (source == ALICE) alice_photon = raw_photon;
+        if (source == BOB  ) bob_photon   = raw_photon;
+        if (source == EVE)   eve_photon   = raw_photon;
+        if (source != EVE)   ideal_photon = raw_photon;
+
+
+
+        if (destination == ALICE) alice_photon = real_photon;
+        if (destination == BOB  ) bob_photon   = real_photon;
+        if (destination == EVE  ) eve_photon   = real_photon;
+
+
+        packet.photon = real_photon;
+        if (sleep >= 50  && !raw_photon.contains("+") && !raw_photon.contains("X") && (packet.type & END) != END) {
+            photon_pos  = QPoint(0,0);
+
+            anim=true;
+
             timer->setInterval(sleep/10);
             timer->start();
         }
 
-        while(timer->isActive()){
+        while(anim){
             QTest::qWait(25);
         }
 
-        if (destination == "alice" && main_server->alice) main_server->alice->sendToClient(packet);
-        if (destination == "bob"   && main_server->bob  ) main_server->bob->sendToClient(  packet);
-        if (destination == "eve"   && main_server->eve  ) main_server->eve->sendToClient(  packet);
+        if (destination == ALICE && main_server->alice) main_server->alice->sendToClient( packet );
+        if (destination == BOB   && main_server->bob  ) main_server->bob->sendToClient(   packet );
+        if (destination == EVE   && main_server->eve  ) {
+            main_server->eve->sendToClient(   packet );
+            if (source == ALICE) no_alice = true;
+            if (source == BOB  ) no_bob   = true;
+        }
+
+        if (source == EVE){
+            no_alice=false;
+            no_bob = false;
+        }
 
         m_nNextBlockSize = 0;
     }
@@ -428,20 +420,14 @@ void Server::on_startStopAction_triggered()
     bob->stopServer(  );
     eve->stopServer(  );
 
-    ui->aliceLabel->setStyleSheet("color:red");
-    ui->bobLabel->setStyleSheet("color:red");
-    ui->eveLabel->setStyleSheet("color:red");
-
     alice = new Tcp(ui, alice_port);
     bob   = new Tcp(ui, bob_port  );
     eve   = new Tcp(ui, eve_port  );
+
+    init_draw_surface();
 }
 
-void Server::on_eveSpy_toggled(bool checked)
-{
-    spy = ui->eveSpy->isChecked();
-
-
+void Server::init_draw_surface(){
     QGraphicsScene* scene = ui->graphicsView->scene();
 
     qint32 width  = scene->width( );
@@ -450,48 +436,221 @@ void Server::on_eveSpy_toggled(bool checked)
     qint32 vmiddle = height/2;
     qint32 hmiddle = width/2;
 
+    QFont  font;
+    QPen   pen;
+    font.setPointSize(16);
+
+    pen.setWidthF(0.5);
+    pen.setColor(QApplication::palette().text().color());
 
 
-    if(text_item  ) scene->removeItem(text_item  );
-    if(first_line ) scene->removeItem(first_line );
-    if(second_line) scene->removeItem(second_line);
-    if(third_line ) scene->removeItem(third_line );
-    if(forth_line ) scene->removeItem(forth_line );
+    if(open_channel_top_line   ) scene->removeItem(open_channel_top_line   );
+    if(open_channel_bottom_line) scene->removeItem(open_channel_bottom_line);
+    if(alice_bob_direct_line   ) scene->removeItem(alice_bob_direct_line   );
+
+    if(alice_to_center_line    ) scene->removeItem(alice_to_center_line );
+    if(center_to_eve_line      ) scene->removeItem(center_to_eve_line   );
+    if(eve_to_center_line      ) scene->removeItem(eve_to_center_line   );
+    if(center_to_bob_line      ) scene->removeItem(center_to_bob_line   );
+
+    if(real_photon_item        ) scene->removeItem(real_photon_item     );
+    if(alice_photon_item       ) scene->removeItem(alice_photon_item    );
+    if(bob_photon_item         ) scene->removeItem(bob_photon_item      );
+    if(eve_photon_item         ) scene->removeItem(eve_photon_item);
 
     scene->clear();
 
-    delete text_item  ;
-    delete first_line ;
-    delete second_line;
-    delete third_line ;
-    delete forth_line ;
+    delete open_channel_top_line;
+    delete open_channel_bottom_line;
+    delete alice_bob_direct_line;
 
-    text_item   = 0;
-    first_line  = 0;
-    second_line = 0;
-    third_line  = 0;
-    forth_line  = 0;
+    delete alice_to_center_line;
+    delete center_to_eve_line;
+    delete eve_to_center_line;
+    delete center_to_bob_line;
+
+    delete real_photon_item;
+    delete alice_photon_item;
+    delete bob_photon_item;
+    delete eve_photon_item;
+
+    open_channel_top_line    = 0;
+    open_channel_bottom_line = 0;
+    alice_bob_direct_line    = 0;
+
+    alice_to_center_line     = 0;
+    center_to_eve_line       = 0;
+    eve_to_center_line       = 0;
+    center_to_bob_line       = 0;
+
+    real_photon_item         = 0;
+    alice_photon_item        = 0;
+    bob_photon_item          = 0;
+    eve_photon_item          = 0;
 
 
 
-    text_item = new QGraphicsTextItem(QString(""));
-    text_item->setPos(3,vmiddle+10);
+    real_photon_item  = new QGraphicsTextItem(QString(""));
+    alice_photon_item = new QGraphicsTextItem(QString(""));
+    bob_photon_item   = new QGraphicsTextItem(QString(""));
+    eve_photon_item   = new QGraphicsTextItem(QString(""));
+
+
+    real_photon_item->setPos(               0,                0);
+    alice_photon_item->setPos(         margin,  vmiddle+margin);
+    bob_photon_item->setPos(   width-margin*2,  vmiddle+margin);
+    eve_photon_item->setPos( hmiddle-margin/2, height-margin*2);
+
+    real_photon_item->setFont(  font );
+    alice_photon_item->setFont( font );
+    bob_photon_item->setFont(   font );
+    eve_photon_item->setFont(   font );
+
+
+
+
+
+
+    alice_bob_direct_line       = new QGraphicsLineItem(0,vmiddle-margin*2,width,vmiddle-margin*2);
 
     if (spy){
-        first_line  = new QGraphicsLineItem(0,vmiddle,hmiddle-margin,vmiddle);
+        alice_to_center_line    = new QGraphicsLineItem(0,vmiddle,hmiddle-margin,vmiddle);
     } else {
-        first_line  = new QGraphicsLineItem(0,vmiddle,width,vmiddle);
+        alice_to_center_line    = new QGraphicsLineItem(0,vmiddle,width,vmiddle);
     }
 
-    if (spy) second_line = new QGraphicsLineItem(hmiddle-margin, vmiddle, hmiddle-margin, height );
-    if (spy) third_line  = new QGraphicsLineItem(hmiddle+margin, height,  hmiddle+margin, vmiddle);
-    if (spy) forth_line  = new QGraphicsLineItem(hmiddle+margin, vmiddle, width,          vmiddle);
+    if (spy) center_to_eve_line = new QGraphicsLineItem(hmiddle-margin, vmiddle, hmiddle-margin, height );
+    if (spy) eve_to_center_line = new QGraphicsLineItem(hmiddle+margin, height,  hmiddle+margin, vmiddle);
+    if (spy) center_to_bob_line = new QGraphicsLineItem(hmiddle+margin, vmiddle, width,          vmiddle);
 
-    if(text_item  ) scene->addItem(text_item  );
-    if(first_line ) scene->addItem(first_line );
-    if(second_line) scene->addItem(second_line);
-    if(third_line ) scene->addItem(third_line );
-    if(forth_line ) scene->addItem(forth_line );
+
+    if(open_channel_top_line   ) open_channel_top_line->setPen(   pen);
+    if(open_channel_bottom_line) open_channel_bottom_line->setPen(pen);
+    if(alice_bob_direct_line   ) alice_bob_direct_line->setPen   (pen);
+    if(alice_to_center_line    ) alice_to_center_line->setPen(    pen);
+    if(center_to_eve_line      ) center_to_eve_line->setPen(      pen);
+    if(eve_to_center_line      ) eve_to_center_line->setPen(      pen);
+    if(center_to_bob_line      ) center_to_bob_line->setPen(      pen);
+
+
+
+
+
+    if(open_channel_top_line   ) scene->addItem(open_channel_top_line   );
+    if(open_channel_bottom_line) scene->addItem(open_channel_bottom_line);
+    if(alice_bob_direct_line   ) scene->addItem(alice_bob_direct_line   );
+
+    if(alice_to_center_line    ) scene->addItem(alice_to_center_line );
+    if(center_to_eve_line      ) scene->addItem(center_to_eve_line   );
+    if(eve_to_center_line      ) scene->addItem(eve_to_center_line   );
+    if(center_to_bob_line      ) scene->addItem(center_to_bob_line   );
+
+    if(real_photon_item        ) scene->addItem(real_photon_item     );
+    if(alice_photon_item       ) scene->addItem(alice_photon_item    );
+    if(bob_photon_item         ) scene->addItem(bob_photon_item      );
+    if(eve_photon_item         ) scene->addItem(eve_photon_item);
+}
+
+void Server::draw_items(){
+    qint32 width  = ui->graphicsView->scene()->width( );
+    qint32 height = ui->graphicsView->scene()->height();
+
+    qint32 vmiddle = height/2;
+    qint32 hmiddle = width/2;
+
+    if (real_photon_item){
+
+        if (photon_pos.x() < 0 || photon_pos.x() > width || photon_pos.y() > height) {
+            anim = false;
+            timer->stop();
+            return;
+        }
+
+        if(alice_photon_item){
+            if (source == ALICE) {
+                alice_photon_item->setHtml(format_HTML(alice_photon,ideal_photon));
+                if (destination == EVE){
+                    if(photon_pos.y() > height-margin*2){
+                        eve_photon_item->setHtml(format_HTML(eve_photon,ideal_photon));
+                    } else{
+                        eve_photon_item->setPlainText("");
+                    }
+                }
+            }
+
+            if (destination == ALICE){
+                if(photon_pos.x() > margin){
+                    alice_photon_item->setHtml("");
+                } else {
+                    eve_photon_item->setPlainText("");
+                    alice_photon_item->setHtml(format_HTML(alice_photon,ideal_photon));
+                }
+            }
+
+        }
+
+        if (bob_photon_item){
+            if (source == BOB) {
+                bob_photon_item->setHtml(format_HTML(bob_photon,ideal_photon));
+            }
+
+            if (destination == BOB){
+                if(photon_pos.x() < width-margin){
+                    bob_photon_item->setPlainText("");
+                } else {
+                    bob_photon_item->setHtml(format_HTML(bob_photon,ideal_photon));
+                }
+            }
+
+        }
+
+        if (source == EVE) {
+            if (destination == ALICE && eve_photon_item) eve_photon_item->setHtml(format_HTML(eve_photon,ideal_photon));
+        }
+
+        real_photon_item->setHtml(format_HTML(real_photon,ideal_photon));
+
+
+
+
+        if (photon_pos == QPoint(0,0)){
+            if(source == ALICE) photon_pos = QPoint(        margin/2, vmiddle-margin*2);
+            if(source == BOB  ) photon_pos = QPoint(  width-margin/2, vmiddle-margin*2);
+            if(source == EVE  ) photon_pos = QPoint(hmiddle-margin/2, height-margin/2);
+        }
+
+        if(source == ALICE) {
+            if (destination == BOB || ( destination == EVE && photon_pos.x() < hmiddle-margin/2)){
+                photon_pos.setX(photon_pos.x()+tick);
+            } else {
+                photon_pos.setY(photon_pos.y()+tick);
+            }
+        } else if(source == BOB) {
+            if (destination == ALICE || ( destination == EVE && photon_pos.x() > hmiddle+margin/2)){
+                photon_pos.setX(photon_pos.x()-tick);
+            } else {
+                photon_pos.setY(photon_pos.y()+tick);
+            }
+        } else if(source == EVE){
+            if (photon_pos.y() > vmiddle-margin*2){
+                photon_pos.setY(photon_pos.y()-tick);
+            } else if (destination == ALICE) {
+                photon_pos.setX(photon_pos.x()-tick);
+            } else if (destination == BOB) {
+                photon_pos.setX(photon_pos.x()+tick);
+            }
+        }
+
+        real_photon_item->setPos(      photon_pos);
+
+    }
+}
+
+void Server::on_eveSpy_toggled(bool checked)
+{
+    spy = ui->eveSpy->isChecked();
+
+    init_draw_surface();
 }
 
 void Server::on_speedSlider_valueChanged(int value)

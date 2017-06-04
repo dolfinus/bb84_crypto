@@ -1,5 +1,5 @@
 # bb84_crypto
-Qt5-based realisation of BB4
+Qt5-based implementation of BB4
 
 #Applications
 Project is based on client-server topology.

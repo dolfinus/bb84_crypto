@@ -1,5 +1,5 @@
-#ifndef ALICE_H
-#define ALICE_H
+#ifndef EVE_H
+#define EVE_H
 
 #include <QMainWindow>
 #include <QTcpServer>
@@ -29,7 +29,7 @@ public:
     QTcpSocket* m_pTcpSocket;
     quint64     m_nNextBlockSize;
     qint32      transaction_no;
-    QString     id;
+    qint32     id;
     qint32      port;
     ~Eve();
 

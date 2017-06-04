@@ -50,7 +50,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="text">
@@ -97,7 +97,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="readOnly">
@@ -128,7 +128,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="inputMask">
@@ -165,7 +165,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="readOnly">
@@ -196,7 +196,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="inputMask">
@@ -246,7 +246,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="inputMask">
@@ -352,7 +352,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="inputMask">
@@ -376,7 +376,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="inputMask">
@@ -426,7 +426,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans</family>
       </font>
      </property>
      <property name="readOnly">
@@ -444,7 +444,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
       </font>
      </property>
      <property name="inputMask">
@@ -827,7 +827,7 @@
      <x>0</x>
      <y>0</y>
      <width>719</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">

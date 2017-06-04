@@ -10,7 +10,7 @@ Alice::Alice(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Alice)
 {
-    id="alice";
+    id=ALICE;
     transaction_no=0;
     ui->setupUi(this);
     m_nNextBlockSize=0;
@@ -29,8 +29,8 @@ void Alice::loadSettings()
     if (QFile(m_settingsFile).exists()) {
         QSettings settings(m_settingsFile, QSettings::IniFormat);
         QStringList groups = settings.childGroups();
-        if (groups.contains(id)) {
-            settings.beginGroup(id);
+        if (groups.contains("alice")) {
+            settings.beginGroup("alice");
                 port = settings.value("port", 55551).toInt();
 
                 ui->vectorRadio->setChecked(settings.value("is_vector",true).toBool());
@@ -68,7 +68,7 @@ void Alice::loadSettings()
 void Alice::saveSettings()
 {
     QSettings settings(m_settingsFile, QSettings::IniFormat);
-    settings.beginGroup(id);
+    settings.beginGroup("alice");
         settings.setValue("port",  port);
         settings.setValue("is_vector",ui->vectorRadio->isChecked());
         settings.setValue("vector", ui->vectorEdit->text());
@@ -218,23 +218,25 @@ void Alice::slotSendToServer(Packet& packet)
         out.setVersion(QDataStream::Qt_5_5);
 
         Packet pckt;
-        pckt.type=packet.type;
-        pckt.photon=QString(packet.photon[i]);
-        pckt.from=id;
-        pckt.transaction_no=transaction_no;
-        pckt.dateTime=QDateTime::currentDateTime();
-        ++transaction_no;
 
         if (i == packet.photon.length()) {
             pckt.type = packet.type | END;
             pckt.photon = rand_photon();
+        } else{
+            pckt.type=packet.type;
+            pckt.photon=QString(packet.photon[i]);
         }
+
+        pckt.from=id;
+        pckt.transaction_no=transaction_no;
+        pckt.dateTime=QDateTime::currentDateTime();
 
         out << quint64(0) << pckt;
         out.device()->seek(0);
         out << quint64(arrBlock.size() - sizeof(quint64));
 
         m_pTcpSocket->write(arrBlock);
+        ++transaction_no;
     }
 }
 

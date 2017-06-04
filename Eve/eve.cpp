@@ -22,7 +22,7 @@ Eve::Eve(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Eve)
 {
-    id="eve";
+    id=EVE;
     transaction_no=0;
     ui->setupUi(this);
     m_nNextBlockSize=0;
@@ -41,8 +41,8 @@ void Eve::loadSettings()
     if (QFile(m_settingsFile).exists()) {
         QSettings settings(m_settingsFile, QSettings::IniFormat);
         QStringList groups = settings.childGroups();
-        if (groups.contains(id)) {
-            settings.beginGroup(id);
+        if (groups.contains("eve")) {
+            settings.beginGroup("eve");
                 port = settings.value("port", 55553).toInt();
                 ui->verticalNormal->setChecked(settings.value("vertical",true).toBool());
                 ui->verticalInverted->setChecked(!settings.value("vertical",true).toBool());
@@ -80,7 +80,7 @@ void Eve::loadSettings()
 void Eve::saveSettings()
 {
     QSettings settings(m_settingsFile, QSettings::IniFormat);
-    settings.beginGroup(id);
+    settings.beginGroup("eve");
         settings.setValue("port",  port);
 
         settings.setValue("vertical",   VERTICAL);
@@ -146,7 +146,7 @@ void Eve::slotReadyRead()
 
         QString photon;
 
-        if (packet.from == "alice"){
+        if (packet.from == ALICE){
 
         if (!packet.photon.contains('+') && !packet.photon.contains('X')){
 

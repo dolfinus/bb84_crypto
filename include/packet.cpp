@@ -93,13 +93,13 @@ QString denoisy(QString raw){
             _max=std::max<int>(_max,count_antislash);
         }
     }
-        if (_max == count_slash){
+           if (_max == count_slash){
         return QString('/');
     } else if (_max == count_antislash){
         return QString('\\');
-    } else if (_max == count_dash){
+    } else if (_max == count_dash ){
         return QString('-');
-    } else if (_max == count_line){
+    } else if (_max == count_line ){
         return QString('|');
     } else {
         return QString(' ');
@@ -276,4 +276,13 @@ QByteArray decode_hamming(QByteArray message){
         result +=res;
     }
     return result;
+}
+
+QString format_HTML(QString photons, QString stock){
+    QString html;
+
+    for(int i=0; i<photons.count();++i){
+        html += QString("<span style='color:%1'>%2</span>").arg(photons[i] == stock[0] ? "green" :  "red").arg(photons[i] == QChar(' ') ? "◌" : QString(photons[i]));
+    }
+    return html;
 }

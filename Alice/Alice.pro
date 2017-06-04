@@ -14,10 +14,10 @@ TEMPLATE = app
 
 INCLUDEPATH += ../include
 
-SOURCES += main.cpp\
-        alice.cpp\
+SOURCES += $$files(../include/*.cpp)
 
-SOURCES += $$files(/*.cpp)
+SOURCES += main.cpp\
+        alice.cpp
 
 HEADERS  += alice.h
 

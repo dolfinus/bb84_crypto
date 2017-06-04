@@ -16,13 +16,17 @@ extern char HORIZONTAL;
 #define RETRY   8
 #define END     128
 
+#define ALICE 0
+#define BOB   1
+#define EVE   2
+
 class Packet
 {
 public:
     qint16     transaction_no;
     QDateTime  dateTime;
     qint32     type;
-    QString    from;
+    qint32     from;
     QString    photon;
 };
 
@@ -49,5 +53,7 @@ QByteArray depolarize(QString polarization, QString    photons);
 
 QByteArray code_hamming(  QByteArray message);
 QByteArray decode_hamming(QByteArray message);
+
+QString format_HTML(QString photons, QString stock);
 
 #endif // PACKET_H

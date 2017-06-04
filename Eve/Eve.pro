@@ -7,15 +7,14 @@
 QT       += core gui
 QT += network
 QT += testlib
-greaterThan(QT_MAJOR_VERSION, 4): QT += widget
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Eve
 TEMPLATE = app
 
-INCLUDEPATH += ../include
-
 SOURCES += $$files(../include/*.cpp)
 
+INCLUDEPATH += ../include
 
 SOURCES += main.cpp\
         eve.cpp

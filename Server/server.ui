@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>881</width>
-    <height>364</height>
+    <width>1020</width>
+    <height>396</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,14 +17,14 @@
    <widget class="QLabel" name="bobLabel">
     <property name="geometry">
      <rect>
-      <x>840</x>
-      <y>120</y>
+      <x>980</x>
+      <y>150</y>
       <width>31</width>
-      <height>20</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: rgb(255, 0, 0);</string>
+     <string notr="true">color: &quot;red&quot;</string>
     </property>
     <property name="text">
      <string>Bob</string>
@@ -33,14 +33,14 @@
    <widget class="QLabel" name="eveLabel">
     <property name="geometry">
      <rect>
-      <x>610</x>
-      <y>301</y>
+      <x>680</x>
+      <y>340</y>
       <width>21</width>
       <height>20</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: rgb(255, 0, 0);</string>
+     <string notr="true">color: &quot;red&quot;</string>
     </property>
     <property name="text">
      <string>Eve</string>
@@ -51,16 +51,25 @@
      <rect>
       <x>380</x>
       <y>10</y>
-      <width>451</width>
-      <height>281</height>
+      <width>591</width>
+      <height>321</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">#on{
+	background-image: url(:/on.png);
+}
+
+#off{
+	background-image: url(:/off.png);
+}</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="eveSpy">
     <property name="geometry">
      <rect>
-      <x>580</x>
-      <y>300</y>
+      <x>650</x>
+      <y>340</y>
       <width>21</width>
       <height>21</height>
      </rect>
@@ -133,13 +142,13 @@
     <property name="geometry">
      <rect>
       <x>340</x>
-      <y>120</y>
+      <y>140</y>
       <width>31</width>
       <height>17</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: rgb(255, 0, 0);</string>
+     <string notr="true">color: &quot;red&quot;</string>
     </property>
     <property name="text">
      <string>Alice</string>
@@ -442,7 +451,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>881</width>
+     <width>1020</width>
      <height>23</height>
     </rect>
    </property>

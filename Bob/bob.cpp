@@ -16,7 +16,7 @@ Bob::Bob(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Bob)
 {
-    id="bob";
+    id=BOB;
     detected = false;
     transaction_no=0;
     ui->setupUi(this);
@@ -36,8 +36,8 @@ void Bob::loadSettings()
     if (QFile(m_settingsFile).exists()) {
         QSettings settings(m_settingsFile, QSettings::IniFormat);
         QStringList groups = settings.childGroups();
-        if (groups.contains(id)) {
-            settings.beginGroup(id);
+        if (groups.contains("bob")) {
+            settings.beginGroup("bob");
                 port = settings.value("port", 55552).toInt();
                 ui->verticalNormal->setChecked(settings.value("vertical",true).toBool());
                 ui->verticalInverted->setChecked(!settings.value("vertical",true).toBool());
@@ -58,7 +58,7 @@ void Bob::loadSettings()
 void Bob::saveSettings()
 {
     QSettings settings(m_settingsFile, QSettings::IniFormat);
-    settings.beginGroup(id);
+    settings.beginGroup("bob");
         settings.setValue("port",  port);
 
         settings.setValue("vertical",  ui->verticalNormal->isChecked());

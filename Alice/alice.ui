@@ -53,7 +53,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -74,7 +77,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -121,7 +127,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -210,7 +219,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -234,7 +246,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -271,7 +286,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -308,7 +326,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -533,7 +554,10 @@
      </property>
      <property name="font">
       <font>
-       <family>Consolas</family>
+       <family>DejaVu Sans</family>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="inputMask">
@@ -551,7 +575,7 @@
      <x>0</x>
      <y>0</y>
      <width>423</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
